@@ -1,16 +1,18 @@
-## Hi there 👋
+# Hi, I'm Abhishek 👋
 
-<!--
-**abhisheknpandya/abhisheknpandya** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+Mathematics graduate with an interest in Data Analytics, Finance, AI and commercial problem solving.
 
-Here are some ideas to get you started:
+## Technical Skills
+- Python (Pandas, NumPy, SciPy)
+- SQL
+- Excel
+- Power BI
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+## Current Focus
+- Building data analytics projects
+- Developing my Python portfolio
+- Learning Power BI
+- Exploring AI applications in business
+
+## Connect with me
+LinkedIn: linkedin.com/in/abhisheknpandya
