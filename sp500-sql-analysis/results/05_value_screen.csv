@@ -1,0 +1,16 @@
+name,sector,market_cap_bn,pe_ratio,sector_pe,dividend_yield_pct,sector_yield_pct
+Allstate,Financials,57.0,4.5,15.7,1.92,1.81
+Honeywell Technologies,Industrials,67.0,7.9,27.4,1.31,1.22
+Cigna,Health Care,72.0,11.3,30.3,2.3,1.6
+Comcast,Communication Services,77.0,7.0,18.3,6.12,0.67
+Bristol Myers Squibb,Health Care,122.0,13.0,30.3,4.29,1.6
+Accenture,Information Technology,118.0,14.4,33.5,3.51,0.53
+AT&T,Communication Services,167.0,8.0,18.3,4.58,0.67
+Simon Property Group,Real Estate,77.0,14.2,32.1,4.42,3.46
+Intuit,Information Technology,77.0,17.4,33.5,1.94,0.53
+Altria,Consumer Staples,114.0,14.3,26.9,6.54,2.3
+Northrop Grumman,Industrials,69.0,15.4,27.4,2.08,1.22
+Devon Energy,Energy,53.0,10.5,18.5,2.67,2.53
+Lowe's,Consumer Discretionary,103.0,15.2,26.8,2.79,0.61
+FedEx,Industrials,68.0,15.6,27.4,1.69,1.22
+Elevance Health,Health Care,87.0,17.5,30.3,1.74,1.6
