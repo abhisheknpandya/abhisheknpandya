@@ -1,0 +1,12 @@
+sector,companies_with_pe,simple_avg_pe,cap_weighted_pe,cap_weighted_div_yield_pct,market_cap_to_ebitda
+Information Technology,62,132.2,33.5,0.53,25.2
+Real Estate,28,44.4,32.1,3.46,15.5
+Health Care,52,32.6,30.3,1.6,13.8
+Industrials,75,30.7,27.4,1.22,16.7
+Consumer Staples,29,30.8,26.9,2.3,14.4
+Consumer Discretionary,43,40.6,26.8,0.61,17.2
+Materials,19,46.7,24.3,1.41,11.0
+Utilities,31,19.4,18.5,3.12,7.0
+Energy,19,18.5,18.5,2.53,8.0
+Communication Services,12,31.6,18.3,0.67,14.2
+Financials,65,16.5,15.7,1.81,26.7
