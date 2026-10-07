@@ -1,0 +1,429 @@
+<title>UK Economy Dashboard</title>
+<meta name="description" content="UK house prices, gilt yields, the pound and commodity prices, 1953 to 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: statistical-bulletin dashboard. Header + range filter, a row of headline readings, then a two-column grid of charts. */
+:root {
+  --bg: #f4f6f9;
+  --panel: #ffffff;
+  --ink: #111a2b;
+  --ink-2: #4a5468;
+  --ink-3: #6b7489;
+  --rule: #dde2ea;
+  --grid: #e9edf3;
+  --accent: #1d4f91;
+  --s1: #2a78d6;
+  --s2: #eb6834;
+  --pos: #2a78d6;
+  --neg: #e34948;
+  --chip: #e6edf7;
+  --font-display: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141d; --panel: #171e2a; --ink: #eef1f6; --ink-2: #b4bccb; --ink-3: #8b94a6;
+    --rule: #2a3343; --grid: #222a38; --accent: #8db4ec; --s1: #3987e5; --s2: #d95926;
+    --pos: #3987e5; --neg: #e66767; --chip: #22314a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141d; --panel: #171e2a; --ink: #eef1f6; --ink-2: #b4bccb; --ink-3: #8b94a6;
+  --rule: #2a3343; --grid: #222a38; --accent: #8db4ec; --s1: #3987e5; --s2: #d95926;
+  --pos: #3987e5; --neg: #e66767; --chip: #22314a; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 48px; display: grid; gap: 22px; }
+
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+.eyebrow { font: 500 12px/1 var(--font-data); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 8px; }
+h1 { font: 800 clamp(26px, 4vw, 38px)/1.05 var(--font-display); letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+.lede { margin: 8px 0 0; color: var(--ink-2); max-width: 62ch; }
+
+.range { display: flex; gap: 4px; padding: 4px; background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; }
+.range button, .toggle button { font: 500 13px var(--font-body); color: var(--ink-2); background: transparent; border: 0; border-radius: 5px; padding: 6px 12px; cursor: pointer; }
+.range button[aria-pressed="true"], .toggle button[aria-pressed="true"] { background: var(--accent); color: var(--panel); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.kpi { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px 10px; display: grid; gap: 4px; min-width: 0; }
+.kpi .label { font-size: 13px; color: var(--ink-2); font-weight: 500; }
+.kpi .value { font: 500 26px/1.1 var(--font-data); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.kpi .meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; font: 400 12px var(--font-data); color: var(--ink-3); }
+.delta { font-weight: 500; }
+.delta.up { color: var(--pos); } .delta.down { color: var(--neg); }
+.kpi svg { width: 100%; height: 34px; display: block; }
+
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--rule); border-radius: 8px; padding: 16px 18px 12px; display: grid; gap: 8px; min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.card h2 { font: 600 16px/1.3 var(--font-display); margin: 0; text-wrap: balance; }
+.card .sub { font-size: 13px; color: var(--ink-3); margin: 2px 0 0; }
+.tools { display: flex; gap: 6px; align-items: center; }
+.toggle { display: flex; gap: 2px; padding: 2px; border: 1px solid var(--rule); border-radius: 6px; }
+.toggle button { padding: 3px 9px; font-size: 12px; }
+.linkbtn { font: 500 12px var(--font-body); color: var(--accent); background: none; border: 1px solid var(--rule); border-radius: 6px; padding: 4px 9px; cursor: pointer; }
+.chart { position: relative; min-height: 240px; }
+.chart svg { display: block; width: 100%; overflow: visible; }
+.axis text { font: 400 11px var(--font-data); fill: var(--ink-3); }
+.gridline { stroke: var(--grid); stroke-width: 1; }
+.baseline { stroke: var(--ink-3); stroke-width: 1; }
+.event line { stroke: var(--ink-3); stroke-dasharray: 2 3; }
+.event text { font: 500 10.5px var(--font-body); fill: var(--ink-2); }
+.direct { font: 600 11.5px var(--font-body); }
+.legend { display: flex; gap: 14px; font-size: 12px; color: var(--ink-2); flex-wrap: wrap; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--panel); font: 400 12px/1.45 var(--font-data); padding: 6px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); z-index: 2; }
+.tip b { font-weight: 500; }
+.crosshair { stroke: var(--ink-3); stroke-width: 1; }
+
+.table-wrap { overflow-x: auto; max-height: 260px; overflow-y: auto; border-top: 1px solid var(--rule); }
+table { border-collapse: collapse; width: 100%; font: 400 12.5px var(--font-data); font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--grid); }
+th:first-child, td:first-child { text-align: left; }
+th { position: sticky; top: 0; background: var(--panel); color: var(--ink-2); font-weight: 500; }
+
+.findings { display: grid; gap: 10px; align-content: start; }
+.findings ol { margin: 0; padding-left: 20px; display: grid; gap: 10px; color: var(--ink-2); }
+.findings strong { color: var(--ink); font-weight: 600; }
+.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; color: var(--ink); }
+
+footer { font-size: 12.5px; color: var(--ink-3); border-top: 1px solid var(--rule); padding-top: 14px; display: grid; gap: 6px; }
+footer a { color: var(--accent); }
+
+@media (max-width: 980px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .grid { grid-template-columns: minmax(0, 1fr); } .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .wrap { padding-inline: 16px; } .kpi .value { font-size: 22px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow">Monthly &amp; quarterly series · 1953 to 2026</p>
+      <h1>UK Economy Dashboard</h1>
+      <p class="lede">House prices, borrowing costs, the pound and the price of gold and oil in sterling. Hover any chart for exact values; the range buttons apply to every chart.</p>
+    </div>
+    <div class="range" role="group" aria-label="Time range">
+      <button type="button" id="r-all" data-range="all" aria-pressed="false">All</button>
+      <button type="button" id="r-25" data-range="25" aria-pressed="false">25 yrs</button>
+      <button type="button" id="r-10" data-range="10" aria-pressed="true">10 yrs</button>
+      <button type="button" id="r-5" data-range="5" aria-pressed="false">5 yrs</button>
+    </div>
+  </header>
+
+  <section class="kpis" id="kpis" aria-label="Latest readings"></section>
+
+  <section class="grid">
+    <article class="card" id="c-house"></article>
+    <article class="card" id="c-yoy"></article>
+    <article class="card" id="c-gilt"></article>
+    <article class="card" id="c-fx"></article>
+    <article class="card" id="c-commod"></article>
+    <article class="card findings">
+      <div>
+        <h2>What the data shows</h2>
+        <p class="sub">Figures over the full history, whatever range is selected</p>
+      </div>
+      <ol>
+        <li><strong>House prices are up 144 times since 1953</strong>, from <span class="num">£1,891</span> to <span class="num">£272,751</span>. That is <span class="num">7.1%</span> a year before inflation. Prices peaked in August 2022, just before mortgage rates jumped.</li>
+        <li><strong>The sharpest fall was the financial crisis.</strong> Prices were down <span class="num">16.5%</span> on a year earlier in early 2009. The fastest rise was <span class="num">42%</span> in the 1972 boom.</li>
+        <li><strong>Borrowing costs fell for 30 years, then reversed.</strong> The 10-year gilt yield went from <span class="num">12.2%</span> in 1990 to <span class="num">0.25%</span> in 2020, and is back at <span class="num">4.5%</span>.</li>
+        <li><strong>The pound has lost almost half its value against the dollar since 1971</strong>, from <span class="num">$2.41</span> to <span class="num">$1.34</span>. It fell <span class="num">10%</span> in the two months after the 2016 EU referendum.</li>
+        <li><strong>A weaker pound makes imports dearer.</strong> Since January 2016, gold has risen <span class="num">3.9×</span> in dollars but <span class="num">4.2×</span> in pounds.</li>
+      </ol>
+    </article>
+  </section>
+
+  <footer>
+    <div>Sources: house prices, Nationwide (<a href="https://github.com/datasets/house-prices-uk">datasets/house-prices-uk</a>); 10-year gilt yield, OECD (<a href="https://github.com/datasets/bond-yields-uk-10y">datasets/bond-yields-uk-10y</a>); exchange rate, Federal Reserve (<a href="https://github.com/datasets/exchange-rates">datasets/exchange-rates</a>); gold (<a href="https://github.com/datasets/gold-prices">datasets/gold-prices</a>); Brent crude, EIA (<a href="https://github.com/datasets/oil-prices">datasets/oil-prices</a>).</div>
+    <div>Prices in pounds are converted from dollars at each month's average exchange rate. House prices are quarterly and in nominal terms. Built by Abhishek Pandya with Python and hand-drawn SVG; the same data model is provided for Power BI.</div>
+  </footer>
+</div>
+
+<script>
+const DATA = /*__DATA__*/{};
+
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const toX = ym => { const [y, m] = ym.split("-").map(Number); return y + (m - 1) / 12; };
+const label = ym => { const [y, m] = ym.split("-"); return `${MONTHS[+m - 1]} ${y}`; };
+const qLabel = ym => { const [y, m] = ym.split("-"); return `Q${Math.ceil(+m / 3)} ${y}`; };
+const fmt = {
+  gbp0: v => "£" + Math.round(v).toLocaleString("en-GB"),
+  gbpK: v => "£" + Math.round(v / 1000) + "k",
+  pct1: v => v.toFixed(1) + "%",
+  pct2: v => v.toFixed(2) + "%",
+  signed: v => (v > 0 ? "+" : "") + v.toFixed(1) + "%",
+  usd2: v => "$" + v.toFixed(2),
+  idx: v => Math.round(v).toString(),
+};
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+};
+
+let range = "10";
+try { const saved = localStorage.getItem("uk-dash-range"); if (saved) range = saved; } catch (e) {}
+
+const lastMonth = Object.values(DATA).reduce((m, s) => s.length && s[s.length - 1][0] > m ? s[s.length - 1][0] : m, "0000-00");
+function inRange(points) {
+  if (range === "all") return points;
+  const cutoff = toX(lastMonth) - Number(range);
+  return points.filter(p => toX(p[0]) >= cutoff);
+}
+
+function niceTicks(min, max, count = 5) {
+  const span = max - min || 1;
+  const raw = span / count;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(s => s * mag).find(s => span / s <= count + 1);
+  const ticks = [];
+  for (let t = Math.ceil(min / step) * step; t <= max + 1e-9; t += step) ticks.push(+t.toFixed(10));
+  return ticks;
+}
+
+/* A line or bar chart drawn in SVG. series: [{name, color, points:[[ym, v]]}] */
+function drawChart(host, cfg) {
+  host.innerHTML = "";
+  const W = Math.max(host.clientWidth, 280), H = cfg.height || 250;
+  const m = { t: 14, r: cfg.directLabels ? 64 : 14, b: 26, l: cfg.leftPad || 52 };
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, height: H, role: "img", "aria-label": cfg.aria }, host);
+  const all = cfg.series.flatMap(s => s.points);
+  if (!all.length) return;
+  const xs = all.map(p => toX(p[0])), vs = all.map(p => p[1]);
+  let x0 = Math.min(...xs), x1 = Math.max(...xs);
+  if (x1 === x0) x1 = x0 + 1;
+  let v0 = Math.min(...vs), v1 = Math.max(...vs);
+  if (cfg.zero) { v0 = Math.min(0, v0); v1 = Math.max(0, v1); }
+  const pad = (v1 - v0) * 0.06; v1 += pad; if (!cfg.zero || v0 < 0) v0 -= pad;
+  const yt = niceTicks(v0, v1);
+  v0 = Math.min(v0, yt[0]); v1 = Math.max(v1, yt[yt.length - 1]);
+  const sx = x => m.l + (x - x0) / (x1 - x0) * (W - m.l - m.r);
+  const sy = v => H - m.b - (v - v0) / (v1 - v0) * (H - m.t - m.b);
+
+  const axis = el("g", { class: "axis" }, svg);
+  yt.forEach(t => {
+    el("line", { x1: m.l, x2: W - m.r, y1: sy(t), y2: sy(t), class: t === 0 && cfg.zero ? "baseline" : "gridline" }, axis);
+    el("text", { x: m.l - 8, y: sy(t) + 4, "text-anchor": "end" }, axis).textContent = cfg.tickFmt(t);
+  });
+  const span = x1 - x0;
+  const xStep = span > 50 ? 10 : span > 20 ? 5 : span > 8 ? 2 : 1;
+  for (let y = Math.ceil(x0 / xStep) * xStep; y <= x1; y += xStep) {
+    el("text", { x: sx(y), y: H - 6, "text-anchor": "middle" }, axis).textContent = y;
+  }
+
+  (cfg.events || []).filter(e => toX(e[0]) >= x0 && toX(e[0]) <= x1).forEach(([ym, text], i) => {
+    const g = el("g", { class: "event" }, svg);
+    const x = sx(toX(ym));
+    el("line", { x1: x, x2: x, y1: m.t, y2: H - m.b }, g);
+    const anchor = x > W - 120 ? "end" : "start";
+    el("text", { x: x + (anchor === "end" ? -4 : 4), y: m.t + 10 + (i % 2) * 13, "text-anchor": anchor }, g).textContent = text;
+  });
+
+  if (cfg.bars) {
+    const pts = cfg.series[0].points;
+    const bw = Math.max(1, (W - m.l - m.r) / pts.length - 2);
+    pts.forEach(([ym, v]) => {
+      const x = sx(toX(ym)) - bw / 2, y = sy(Math.max(v, 0)), h = Math.abs(sy(v) - sy(0));
+      el("rect", { x, y, width: bw, height: Math.max(h, 0.5), rx: Math.min(2, bw / 2), fill: v >= 0 ? "var(--pos)" : "var(--neg)" }, svg);
+    });
+  } else {
+    cfg.series.forEach(s => {
+      const d = s.points.map((p, i) => `${i ? "L" : "M"}${sx(toX(p[0])).toFixed(1)},${sy(p[1]).toFixed(1)}`).join("");
+      if (cfg.area && cfg.series.length === 1) {
+        const last = s.points[s.points.length - 1], first = s.points[0];
+        el("path", { d: `${d}L${sx(toX(last[0]))},${sy(v0)}L${sx(toX(first[0]))},${sy(v0)}Z`, fill: s.color, opacity: 0.08 }, svg);
+      }
+      el("path", { d, fill: "none", stroke: s.color, "stroke-width": 2, "stroke-linejoin": "round" }, svg);
+      const end = s.points[s.points.length - 1];
+      el("circle", { cx: sx(toX(end[0])), cy: sy(end[1]), r: 4, fill: s.color, stroke: "var(--panel)", "stroke-width": 2 }, svg);
+    });
+    if (cfg.directLabels) {
+      // Place end labels beside each line's last point, nudged apart so they never overlap
+      const labels = cfg.series.map(s => { const end = s.points[s.points.length - 1]; return { s, x: sx(toX(end[0])) + 8, y: sy(end[1]) + 4 }; })
+        .sort((a, b) => a.y - b.y);
+      for (let i = 1; i < labels.length; i++) labels[i].y = Math.max(labels[i].y, labels[i - 1].y + 14);
+      labels.forEach(l => { el("text", { x: l.x, y: l.y, class: "direct", fill: "var(--ink)" }, svg).textContent = l.s.name; });
+    }
+  }
+
+  // Hover layer: crosshair + tooltip for the nearest observation
+  const hair = el("line", { y1: m.t, y2: H - m.b, class: "crosshair", visibility: "hidden" }, svg);
+  const dots = cfg.series.map(s => el("circle", { r: 4.5, fill: cfg.bars ? "none" : s.color, stroke: "var(--panel)", "stroke-width": 2, visibility: "hidden" }, svg));
+  const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; host.appendChild(tip);
+  const hit = el("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, fill: "transparent" }, svg);
+  const ref = cfg.series[0].points;
+  const move = evt => {
+    const rect = svg.getBoundingClientRect();
+    const px = (evt.clientX - rect.left) * (W / rect.width);
+    const xv = x0 + (px - m.l) / (W - m.l - m.r) * (x1 - x0);
+    let best = ref[0];
+    for (const p of ref) if (Math.abs(toX(p[0]) - xv) < Math.abs(toX(best[0]) - xv)) best = p;
+    const x = sx(toX(best[0]));
+    hair.setAttribute("x1", x); hair.setAttribute("x2", x); hair.setAttribute("visibility", "visible");
+    const rows = cfg.series.map((s, i) => {
+      const p = s.points.find(q => q[0] === best[0]);
+      if (p && !cfg.bars) { dots[i].setAttribute("cx", x); dots[i].setAttribute("cy", sy(p[1])); dots[i].setAttribute("visibility", "visible"); }
+      return p ? `${cfg.series.length > 1 ? s.name + ": " : ""}<b>${cfg.valueFmt(p[1])}</b>` : "";
+    }).filter(Boolean);
+    tip.innerHTML = `${(cfg.dateFmt || label)(best[0])}<br>${rows.join("<br>")}`;
+    tip.hidden = false;
+    const left = Math.min(Math.max(x / W * rect.width, 70), rect.width - 70);
+    tip.style.left = left + "px";
+    tip.style.top = (sy(best[1]) / H * rect.height) + "px";
+  };
+  hit.addEventListener("pointermove", move);
+  hit.addEventListener("pointerdown", move);
+  hit.addEventListener("pointerleave", () => { tip.hidden = true; hair.setAttribute("visibility", "hidden"); dots.forEach(d => d.setAttribute("visibility", "hidden")); });
+}
+
+function buildTable(cfg) {
+  const rows = cfg.series[0].points.map(p => p[0]).slice().reverse();
+  const head = `<tr><th>Date</th>${cfg.series.map(s => `<th>${s.name}</th>`).join("")}</tr>`;
+  const body = rows.map(ym => `<tr><td>${(cfg.dateFmt || label)(ym)}</td>${cfg.series.map(s => {
+    const p = s.points.find(q => q[0] === ym); return `<td>${p ? cfg.valueFmt(p[1]) : ""}</td>`;
+  }).join("")}</tr>`).join("");
+  return `<div class="table-wrap"><table>${head}${body}</table></div>`;
+}
+
+/* Card definitions. Each returns a chart config for the current range. */
+const rebase = pts => pts.length ? pts.map(([d, v]) => [d, v / pts[0][1] * 100]) : pts;
+let commodity = "gold";
+try { commodity = localStorage.getItem("uk-dash-commodity") || "gold"; } catch (e) {}
+
+const CARDS = {
+  "c-house": () => ({
+    title: "Average UK house price", sub: "Nationwide, all properties, quarterly",
+    aria: "Line chart of the average UK house price",
+    series: [{ name: "Average price", color: "var(--s1)", points: inRange(DATA.house_price_gbp_q) }],
+    tickFmt: v => v >= 1000 ? fmt.gbpK(v) : fmt.gbp0(v), valueFmt: fmt.gbp0, dateFmt: qLabel, area: true,
+    events: [["2008-09", "Financial crisis"], ["2022-09", "Mini-budget"]],
+  }),
+  "c-yoy": () => ({
+    title: "House prices: change on a year earlier", sub: "Blue = rising, red = falling",
+    aria: "Bar chart of the annual change in UK house prices",
+    series: [{ name: "Annual change", color: "var(--s1)", points: inRange(DATA.house_price_yoy_pct) }],
+    tickFmt: v => v + "%", valueFmt: fmt.signed, dateFmt: qLabel, bars: true, zero: true, leftPad: 44,
+  }),
+  "c-gilt": () => ({
+    title: "10-year UK government bond (gilt) yield", sub: "The benchmark for long-term borrowing costs, quarterly",
+    aria: "Line chart of the 10-year UK gilt yield",
+    series: [{ name: "Yield", color: "var(--s1)", points: inRange(DATA.gilt_10y_pct) }],
+    tickFmt: v => v + "%", valueFmt: fmt.pct2, dateFmt: qLabel, zero: true, area: true, leftPad: 40,
+    events: [["1997-05", "BoE independence"], ["2009-03", "QE begins"], ["2022-09", "Mini-budget"]],
+  }),
+  "c-fx": () => ({
+    title: "Pound to US dollar", sub: "Dollars per £1, monthly average",
+    aria: "Line chart of the pound to dollar exchange rate",
+    series: [{ name: "£1 =", color: "var(--s1)", points: inRange(DATA.usd_per_gbp) }],
+    tickFmt: v => "$" + v.toFixed(2), valueFmt: fmt.usd2, leftPad: 46,
+    events: [["1985-02", "Record low"], ["1992-09", "Black Wednesday"], ["2008-09", "Lehman collapse"], ["2016-06", "EU referendum"], ["2022-09", "Mini-budget"]],
+  }),
+  "c-commod": () => {
+    const isGold = commodity === "gold";
+    const usd = inRange(isGold ? DATA.gold_usd_oz : DATA.brent_usd_bbl);
+    const gbp = inRange(isGold ? DATA.gold_gbp_oz : DATA.brent_gbp_bbl);
+    const start = gbp.length ? label(gbp[0][0]) : "";
+    return {
+      title: `${isGold ? "Gold" : "Brent crude oil"} priced in pounds vs dollars`,
+      sub: `Index, ${start} = 100. When the £ line is above the $ line, the weaker pound has made it dearer for UK buyers.`,
+      aria: "Line chart comparing commodity prices in pounds and dollars",
+      series: [
+        { name: "In £", color: "var(--s1)", points: rebase(gbp) },
+        { name: "In $", color: "var(--s2)", points: rebase(usd.filter(p => gbp.some(q => q[0] === p[0]))) },
+      ],
+      tickFmt: fmt.idx, valueFmt: fmt.idx, directLabels: true, leftPad: 40,
+      toggle: true,
+    };
+  },
+};
+
+const tableOpen = {};
+function renderCard(id) {
+  const card = document.getElementById(id);
+  const cfg = CARDS[id]();
+  card.innerHTML = `
+    <div class="card-head">
+      <div><h2>${cfg.title}</h2><p class="sub">${cfg.sub}</p></div>
+      <div class="tools">
+        ${cfg.toggle ? `<div class="toggle" role="group" aria-label="Commodity">
+          <button type="button" id="t-gold" data-c="gold" aria-pressed="${commodity === "gold"}">Gold</button>
+          <button type="button" id="t-brent" data-c="brent" aria-pressed="${commodity === "brent"}">Brent</button></div>` : ""}
+        <button type="button" class="linkbtn" id="${id}-tbl" aria-expanded="${!!tableOpen[id]}">${tableOpen[id] ? "Chart" : "Table"}</button>
+      </div>
+    </div>
+    ${cfg.series.length > 1 ? `<div class="legend">${cfg.series.map(s => `<span><i style="background:${s.color}"></i>${s.name}</span>`).join("")}</div>` : ""}
+    <div class="chart"></div>`;
+  const host = card.querySelector(".chart");
+  if (tableOpen[id]) host.innerHTML = buildTable(cfg); else drawChart(host, cfg);
+  card.querySelector(".linkbtn").addEventListener("click", () => { tableOpen[id] = !tableOpen[id]; renderCard(id); });
+  card.querySelectorAll(".toggle button").forEach(b => b.addEventListener("click", () => {
+    commodity = b.dataset.c;
+    try { localStorage.setItem("uk-dash-commodity", commodity); } catch (e) {}
+    renderCard(id);
+  }));
+}
+
+function sparkline(svg, pts, color) {
+  const W = 200, H = 34;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.setAttribute("preserveAspectRatio", "none");
+  const vs = pts.map(p => p[1]), lo = Math.min(...vs), hi = Math.max(...vs);
+  const sx = i => 3 + i / (pts.length - 1) * (W - 8), sy = v => H - 3 - (v - lo) / ((hi - lo) || 1) * (H - 6);
+  const d = pts.map((p, i) => `${i ? "L" : "M"}${sx(i).toFixed(1)},${sy(p[1]).toFixed(1)}`).join("");
+  el("path", { d, fill: "none", stroke: color, "stroke-width": 1.6, "vector-effect": "non-scaling-stroke" }, svg);
+}
+
+function renderKpis() {
+  const yearAgo = (pts, back) => pts[pts.length - 1 - back];
+  const items = [
+    { label: "Average house price", key: "house_price_gbp_q", f: fmt.gbp0, back: 4, d: qLabel, kind: "pct" },
+    { label: "10-year gilt yield", key: "gilt_10y_pct", f: fmt.pct2, back: 4, d: qLabel, kind: "pts" },
+    { label: "£1 buys", key: "usd_per_gbp", f: fmt.usd2, back: 12, d: label, kind: "pct" },
+    { label: "Brent crude, per barrel", key: "brent_gbp_bbl", f: v => "£" + v.toFixed(2), back: 12, d: label, kind: "pct" },
+    { label: "Gold, per troy ounce", key: "gold_gbp_oz", f: fmt.gbp0, back: 12, d: label, kind: "pct" },
+  ];
+  const host = document.getElementById("kpis");
+  host.innerHTML = "";
+  items.forEach(it => {
+    const pts = DATA[it.key], last = pts[pts.length - 1], prev = yearAgo(pts, it.back);
+    const ch = it.kind === "pct" ? (last[1] / prev[1] - 1) * 100 : last[1] - prev[1];
+    const txt = it.kind === "pct" ? fmt.signed(ch) : (ch > 0 ? "+" : "") + ch.toFixed(2) + " pts";
+    const div = document.createElement("div");
+    div.className = "kpi";
+    div.innerHTML = `<span class="label">${it.label}</span><span class="value">${it.f(last[1])}</span>
+      <span class="meta"><span>${it.d(last[0])}</span><span class="delta ${ch >= 0 ? "up" : "down"}">${ch >= 0 ? "▲" : "▼"} ${txt} y/y</span></span>`;
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("aria-hidden", "true");
+    div.appendChild(svg);
+    host.appendChild(div);
+    sparkline(svg, pts.slice(-(it.back * 5 + 1)), "var(--s1)");
+  });
+}
+
+function renderAll() { Object.keys(CARDS).forEach(renderCard); }
+
+DATA.house_price_gbp_q = DATA.house_price_gbp;
+document.querySelectorAll(".range button").forEach(b => {
+  b.setAttribute("aria-pressed", b.dataset.range === range);
+  b.addEventListener("click", () => {
+    range = b.dataset.range;
+    try { localStorage.setItem("uk-dash-range", range); } catch (e) {}
+    document.querySelectorAll(".range button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    renderAll();
+  });
+});
+renderKpis();
+renderAll();
+let resizeTimer;
+new ResizeObserver(() => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderAll, 120); }).observe(document.querySelector(".grid"));
+</script>
