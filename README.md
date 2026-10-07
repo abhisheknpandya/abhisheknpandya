@@ -19,6 +19,7 @@ Mathematics graduate with an interest in Data Analytics, Finance, AI and commerc
 |---|---|---|
 | [Stock Portfolio Analysis](stock-portfolio-analysis) | Risk/return analysis of 4 stocks vs the S&P 500 through the 2008 crisis, portfolio optimisation, and an out-of-sample backtest showing why hindsight-optimised portfolios fail | Python, Pandas, SciPy, Matplotlib |
 | [S&P 500 Market Analysis in SQL](sp500-sql-analysis) | 10 business questions answered in SQL using today's S&P 500 companies and 150 years of market history: sector concentration, valuations, real returns by decade, bear market recoveries | SQL (window functions, CTEs), Python |
+| [UK Economy Dashboard](uk-economy-dashboard) | Interactive dashboard of UK house prices since 1953, gilt yields, the pound and gold and oil in sterling, with a star-schema data model and DAX measures for Power BI | Python, HTML/JavaScript, Power BI |
 
 ## Connect with me
 LinkedIn: linkedin.com/in/abhisheknpandya

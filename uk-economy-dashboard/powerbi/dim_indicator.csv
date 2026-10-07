@@ -1,0 +1,9 @@
+indicator_key,indicator_name,unit,frequency,source
+house_price_gbp,UK average house price,GBP,Quarterly,Nationwide via datasets/house-prices-uk
+house_price_yoy_pct,UK house price annual change,%,Quarterly,Nationwide via datasets/house-prices-uk
+gilt_10y_pct,10-year UK gilt yield,%,Quarterly,OECD via datasets/bond-yields-uk-10y
+usd_per_gbp,Pound to US dollar,USD per GBP,Monthly,Federal Reserve via datasets/exchange-rates
+gold_usd_oz,Gold price in dollars,USD per troy oz,Monthly,datasets/gold-prices
+gold_gbp_oz,Gold price in pounds,GBP per troy oz,Monthly,Derived: gold USD / USD per GBP
+brent_usd_bbl,Brent crude in dollars,USD per barrel,Monthly,EIA via datasets/oil-prices
+brent_gbp_bbl,Brent crude in pounds,GBP per barrel,Monthly,Derived: Brent USD / USD per GBP
